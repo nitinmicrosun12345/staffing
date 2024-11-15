@@ -4,7 +4,35 @@ const dotenv = require('dotenv');
 const cookieparser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const { connectDB } = require('./db/dbConnection');
+const cors = require('cors');
 dotenv.config();
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3001",
+  "http://localhost:3000",
+  "*"
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    console.log('Requested Origin:', origin);
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+// Enable CORS
+app.use(cors(corsOptions));
+
+// CORS preflight
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(cookieparser());
