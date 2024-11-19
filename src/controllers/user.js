@@ -121,7 +121,7 @@ const {
   
   const dashboardController = async (req, res) => {
     try {
-      const response = await dashboard();
+      const response = await dashboard(req,res);
       return res.status(response.status).json({
         message: response.message,
         data: response.data || {},

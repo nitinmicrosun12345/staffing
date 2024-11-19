@@ -5,9 +5,7 @@ const bcryptjs = require("bcryptjs");
 
 const getMe = async (req) => {
   try {
-    const user = await User.findById(req.user._id).select(
-      "-password -authKey"
-    );
+    const user = await User.findById(req.user._id).select("-password -authKey");
     if (!user) {
       return {
         status: 404,
@@ -49,11 +47,10 @@ const logout = async (req, res) => {
       };
     }
 
-
     const attendance = await Attendance.findOneAndUpdate(
       { userId: user._id, "dates.date": parsedDate },
       { $set: { "dates.$.checkOutTime": checkOutTime } },
-      { new: true } 
+      { new: true }
     );
 
     if (!attendance) {
@@ -64,7 +61,9 @@ const logout = async (req, res) => {
     }
 
     // Remove the authKey from the user
-    const authKeyRemoval = await User.findByIdAndUpdate(user._id, { authKey: "" });
+    const authKeyRemoval = await User.findByIdAndUpdate(user._id, {
+      authKey: "",
+    });
 
     if (!authKeyRemoval) {
       return {
@@ -350,19 +349,23 @@ const getDeletionRequests = async () => {
   }
 };
 
-const dashboard = async () => {
+const dashboard = async (req, res) => {
   try {
-    const usersCount = await User.countDocuments() - 1;
+    const usersCount = (await User.countDocuments()) - 1;
     console.log(usersCount);
-    
+
     const deletionRequestsCount = await DeletionRequest.countDocuments();
     console.log(deletionRequestsCount);
-    
 
-    const employeesAdded = await User.find({ role: "employee" }).where(
-      "dateOfJoining"
-    ).equals(new Date().toISOString().split("T")[0]);
+    const employeesAdded = await User.find({
+      dateOfJoining: {
+        $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+      },
+    }).countDocuments();
 
+    const employeesRemoved = await DeletionRequest.find({
+      status: "approved",
+    }).countDocuments();
     return {
       status: 200,
       message: "Dashboard data fetched successfully",
@@ -370,6 +373,7 @@ const dashboard = async () => {
         usersCount,
         deletionRequestsCount,
         employeesAdded,
+        employeesRemoved,
       },
     };
   } catch (error) {

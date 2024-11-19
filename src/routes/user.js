@@ -56,7 +56,7 @@ userRouter.post(
   getDeletionRequestsController
 );
 
-userRouter.get('/dashboard', permit(["viewDashboard"]), dashboardController);
+userRouter.post('/dashboard', permit(["viewDashboard"]), dashboardController);
 
 
 module.exports = userRouter;
