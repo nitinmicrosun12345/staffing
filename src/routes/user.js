@@ -4,6 +4,7 @@ const userRouter = express.Router();
 const permit = require("../../middleware/permissions");
 
 const {
+  logoutController,
   getMeController,
   getAllUsersController,
   getUserController,
@@ -18,6 +19,8 @@ const {
 const auth = require("../../middleware/auth");
 
 userRouter.get("/me", auth, getMeController);
+
+userRouter.post("/logout", auth, logoutController);
 
 userRouter.get("/", permit(["manageLabours"]), getAllUsersController);
 
@@ -54,4 +57,6 @@ userRouter.post(
 );
 
 userRouter.get('/dashboard', permit(["viewDashboard"]), dashboardController);
+
+
 module.exports = userRouter;

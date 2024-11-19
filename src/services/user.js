@@ -4,7 +4,9 @@ const bcryptjs = require("bcryptjs");
 
 const getMe = async (req) => {
   try {
-    const user = req.user;
+    const user = await User.findById(req.user._id).select(
+      "-password -authKey"
+    );
     if (!user) {
       return {
         status: 404,
@@ -24,6 +26,41 @@ const getMe = async (req) => {
     };
   }
 };
+
+const logout = async (req,res) => {
+  try {
+    const user = req.user;
+
+    if (!user) {
+      return {
+        status: 404,
+        message: "User not found",
+      };
+    }
+
+
+    const authKeyRemoval = await User.findByIdAndUpdate(user._id, { authKey: "" });
+    if (!authKeyRemoval) {
+      return {
+        status: 500,
+        message: "Error logging out",
+      };
+    }
+
+    req.user = null;
+    res.clearCookie("token");
+
+    return {
+      status: 200,
+      message: "Logged out successfully",
+    };
+  } catch (error) {
+    return {
+      status: 500,
+      message: error.message,
+    };
+  }
+}
 
 const getAllUsers = async () => {
   try {
@@ -288,7 +325,11 @@ const getDeletionRequests = async () => {
 const dashboard = async () => {
   try {
     const usersCount = await User.countDocuments() - 1;
+    console.log(usersCount);
+    
     const deletionRequestsCount = await DeletionRequest.countDocuments();
+    console.log(deletionRequestsCount);
+    
 
     const employeesAdded = await User.find({ role: "employee" }).where(
       "dateOfJoining"
@@ -313,6 +354,7 @@ const dashboard = async () => {
 
 module.exports = {
   getMe,
+  logout,
   getAllUsers,
   getUser,
   createUser,

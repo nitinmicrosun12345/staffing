@@ -1,5 +1,6 @@
 const {
     getMe,
+    logout,
     getAllUsers,
     getUser,
     createUser,
@@ -23,6 +24,17 @@ const {
       return res.status(500).json({ message: error.message });
     }
   };
+
+  const logoutController = async (req, res) => {
+    try {
+      const response = await logout(req,res);
+      return res.status(response.status).json({
+        message: response.message,
+      });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
   
   const getAllUsersController = async (req, res) => {
     try {
@@ -122,6 +134,7 @@ const {
   // Exporting controller functions
   module.exports = {
     getMeController,
+    logoutController,
     getAllUsersController,
     getUserController,
     createUserController,
