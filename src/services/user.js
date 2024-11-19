@@ -1,5 +1,6 @@
 const User = require("../models/user");
 const DeletionRequest = require("../models/deletionRequests");
+const Attendance = require("../models/attendance");
 const bcryptjs = require("bcryptjs");
 
 const getMe = async (req) => {
@@ -27,7 +28,7 @@ const getMe = async (req) => {
   }
 };
 
-const logout = async (req,res) => {
+const logout = async (req, res) => {
   try {
     const user = req.user;
 
@@ -38,8 +39,33 @@ const logout = async (req,res) => {
       };
     }
 
+    const { date, checkOutTime } = req.body;
 
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate)) {
+      return {
+        status: 400,
+        message: "Invalid date format",
+      };
+    }
+
+
+    const attendance = await Attendance.findOneAndUpdate(
+      { userId: user._id, "dates.date": parsedDate },
+      { $set: { "dates.$.checkOutTime": checkOutTime } },
+      { new: true } 
+    );
+
+    if (!attendance) {
+      return {
+        status: 404,
+        message: "Attendance record for the specified date not found",
+      };
+    }
+
+    // Remove the authKey from the user
     const authKeyRemoval = await User.findByIdAndUpdate(user._id, { authKey: "" });
+
     if (!authKeyRemoval) {
       return {
         status: 500,
@@ -47,12 +73,14 @@ const logout = async (req,res) => {
       };
     }
 
+    // Clear user session and cookie
     req.user = null;
     res.clearCookie("token");
 
     return {
       status: 200,
       message: "Logged out successfully",
+      attendance, // Optionally include the updated attendance record
     };
   } catch (error) {
     return {
@@ -60,7 +88,7 @@ const logout = async (req,res) => {
       message: error.message,
     };
   }
-}
+};
 
 const getAllUsers = async () => {
   try {
