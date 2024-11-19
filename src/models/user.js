@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema({
     enum: ["admin", "manager", "employee", "labour"],
     required: true,
   },
+  gender: { type: String, required: true },
+  dateOfBirth: { type: Date, required: true },
   department: { type: String, required: true },
   dateOfJoining: { type: Date, required: true },
   status: { type: String, enum: ["active", "inactive"], default: "active" },

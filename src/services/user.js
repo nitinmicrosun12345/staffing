@@ -2,6 +2,21 @@ const User = require("../models/user");
 const DeletionRequest = require("../models/deletionRequests");
 const bcryptjs = require("bcryptjs");
 
+const getMe = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+    res.status(200).json(user, { message: "User fetched successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
@@ -64,6 +79,8 @@ const createUser = async (req, res) => {
       dateOfJoining,
       status,
       address,
+      dateOfBirth,
+      gender
     } = req.body;
     if (
       !email ||
@@ -74,7 +91,9 @@ const createUser = async (req, res) => {
       !mobile ||
       !department ||
       !dateOfJoining ||
-      !address
+      !address ||
+      !dateOfBirth ||
+      !gender
     ) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -96,6 +115,8 @@ const createUser = async (req, res) => {
       dateOfJoining,
       status,
       address,
+      dateOfBirth,
+      gender
     });
     res.status(201).json({
       message: "User created successfully",
@@ -237,9 +258,10 @@ const getDeletionRequests = async (req, res) => {
       message: error.message,
     });
   }
-}
+};
 
 module.exports = {
+  getMe,
   getAllUsers,
   getUser,
   createUser,

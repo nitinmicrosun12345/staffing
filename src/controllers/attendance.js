@@ -1,13 +1,42 @@
-const { addAttendance } = require("../services/attendance");
-
+const { addAttendance, viewAllAttendance, myAttendance } = require("../services/attendance");
 
 const addAttendanceController = async (req, res) => {
   try {
-    const response = await addAttendance(req, res);
-    res.status(200).json(response);
+    const response = await addAttendance(req);
+    
+    return res.status(response.status).json({
+      message: response.message,
+      attendance: response.attendance || null,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+};
+const viewAllAttendanceController = async (req, res) => {
+  try {
+    const response = await viewAllAttendance(req,res);
+
+    return res.status(response.status).json({
+      message: response.message,
+      attendances: response.attendances || null,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
   }
 };
 
-module.exports = { addAttendanceController };
+
+const myAttendanceController = async (req, res) => {
+  try {
+    const response = await myAttendance(req);
+
+    return res.status(response.status).json({
+      message: response.message,
+      attendance: response.attendance || null,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
+module.exports = { addAttendanceController, viewAllAttendanceController, myAttendanceController };

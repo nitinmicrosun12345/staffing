@@ -16,6 +16,8 @@ const signup = async (req, res) => {
       dateOfJoining,
       status,
       address,
+      dateOfBirth,
+      gender
     } = req.body;
     if (
       !email ||
@@ -26,7 +28,9 @@ const signup = async (req, res) => {
       !mobile ||
       !department ||
       !dateOfJoining ||
-      !address
+      !address ||
+      !dateOfBirth ||
+      !gender
     ) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -50,6 +54,8 @@ const signup = async (req, res) => {
       dateOfJoining,
       status,
       address,
+      dateOfBirth,
+      gender
     });
     res.status(201).json({
       message: "User created successfully",

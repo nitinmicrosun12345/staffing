@@ -4,6 +4,7 @@ const userRouter = express.Router();
 const permit = require("../../middleware/permissions");
 
 const {
+  getMeController,
   getAllUsersController,
   getUserController,
   createUserController,
@@ -13,9 +14,9 @@ const {
   getDeletionRequestsController,
 } = require("../controllers/user");
 
-userRouter.get("/me", (req, res) => {
-  res.json(req.user);
-});
+const auth = require("../../middleware/auth");
+
+userRouter.get("/me", auth, getMeController);
 
 userRouter.get("/", permit(["manageLabours"]), getAllUsersController);
 

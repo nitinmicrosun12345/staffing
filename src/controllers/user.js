@@ -1,4 +1,5 @@
 const {
+    getMe,
     getAllUsers,
     getUser,
     createUser,
@@ -7,6 +8,17 @@ const {
     requestUserDeletion,
     getDeletionRequests,
 } = require("../services/user");
+
+// Controller functions
+
+const getMeController = async (req, res) => {
+    try {
+        const response = await getMe(req, res);
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
 
 const getAllUsersController = async (req, res) => {
     try {
@@ -73,6 +85,7 @@ const getDeletionRequestsController = async (req, res) => {
 
 // Controller functions
 module.exports = {
+    getMeController,
   getAllUsersController,
   getUserController,
   createUserController,
