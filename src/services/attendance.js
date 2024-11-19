@@ -148,8 +148,6 @@ const viewAllAttendance = async (req) => {
   }
 };
 
-
-
 const myAttendance = async (req) => {
   try {
     const userId = req.user._id;
@@ -187,4 +185,39 @@ const myAttendance = async (req) => {
   }
 };
 
-module.exports = { addAttendance, viewAllAttendance, myAttendance };
+
+const userAttendance = async (req,res) => {
+  try {
+    const userId = req.params.userId;
+    const { date, status } = req.body;
+
+    const attendanceRecord = await Attendance.findOne({ userId });
+    if (!attendanceRecord) {
+      return { status: 404, message: "Attendance not found" };
+    }
+
+    let filteredAttendance = attendanceRecord.dates;
+
+    if (date) {
+      const inputDate = new Date(date).toDateString();
+      filteredAttendance = filteredAttendance.filter(
+        (d) => new Date(d.date).toDateString() === inputDate
+      );
+    }
+
+    if (status) {
+      filteredAttendance = filteredAttendance.filter((d) => d.status === status);
+    }
+
+    return {
+      status: 200,
+      message: "Attendance fetched successfully",
+      attendance: filteredAttendance,
+    };
+  } catch (error) {
+    return { status: 500, message: error.message };
+  }
+}
+
+
+module.exports = { addAttendance, viewAllAttendance, myAttendance, userAttendance };

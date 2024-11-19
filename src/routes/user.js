@@ -12,6 +12,7 @@ const {
   deleteUserController,
   requestUserDeletionController,
   getDeletionRequestsController,
+  dashboardController
 } = require("../controllers/user");
 
 const auth = require("../../middleware/auth");
@@ -52,4 +53,5 @@ userRouter.post(
   getDeletionRequestsController
 );
 
+userRouter.get('/dashboard', permit(["viewDashboard"]), dashboardController);
 module.exports = userRouter;

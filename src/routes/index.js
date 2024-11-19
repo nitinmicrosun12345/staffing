@@ -13,6 +13,8 @@ router.post("/login", loginController);
 
 router.use("/user", auth, userRouter);
 
-router.use('/attendance', attendanceRouter);
+router.use('/attendance',auth, attendanceRouter);
+
+
 
 module.exports = router;

@@ -1,21 +1,32 @@
 const express = require("express");
 const attendanceRouter = express.Router();
 
-const auth = require("../../middleware/auth");
 const permit = require("../../middleware/permissions");
-const { addAttendanceController,viewAllAttendanceController, myAttendanceController } = require("../controllers/attendance");
+const {
+  addAttendanceController,
+  viewAllAttendanceController,
+  myAttendanceController,
+  userAttendanceController,
+} = require("../controllers/attendance");
 
 // attendanceRouter.get("/", (req, res) => {
 //   res.send("Attendance route is up. 😊");
 // });
 
-attendanceRouter.get("/", auth, myAttendanceController);
+attendanceRouter.get("/", myAttendanceController);
 
-attendanceRouter.post("/add", auth, addAttendanceController);
+attendanceRouter.post("/add", addAttendanceController);
 
-attendanceRouter.get("/all", auth, permit(['manageAttendance']), viewAllAttendanceController);
+attendanceRouter.get(
+  "/all",
+  permit(["manageAttendance"]),
+  viewAllAttendanceController
+);
 
-
-
+attendanceRouter.get(
+  "/:userId",
+  permit(["manageAttendance"]),
+  userAttendanceController
+);
 
 module.exports = attendanceRouter;

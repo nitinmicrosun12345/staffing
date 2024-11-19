@@ -7,90 +7,128 @@ const {
     deleteUser,
     requestUserDeletion,
     getDeletionRequests,
-} = require("../services/user");
-
-// Controller functions
-
-const getMeController = async (req, res) => {
+    dashboard,
+  } = require("../services/user");
+  
+  // Controller functions
+  
+  const getMeController = async (req, res) => {
     try {
-        const response = await getMe(req, res);
-        res.status(200).json(response);
+      const response = await getMe(req);
+      return res.status(response.status).json({
+        message: response.message,
+        user: response.user || null,
+      });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
     }
-}
-
-const getAllUsersController = async (req, res) => {
+  };
+  
+  const getAllUsersController = async (req, res) => {
     try {
-        const response = await getAllUsers(req, res);
-        res.status(200).json(response);
+      const response = await getAllUsers();
+      return res.status(response.status).json({
+        message: response.message,
+        users: response.users || [],
+      });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
     }
-}
-
-const getUserController = async (req, res) => {
+  };
+  
+  const getUserController = async (req, res) => {
     try {
-        const response = await getUser(req, res);
-        res.status(200).json(response);
+      const response = await getUser(req);
+      return res.status(response.status).json({
+        message: response.message,
+        user: response.user || null,
+      });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
     }
-}
-
-const updateUserController = async (req, res) => {
+  };
+  
+  const createUserController = async (req, res) => {
     try {
-        const response = await updateUser(req, res);
-        res.status(200).json(response);
+      const response = await createUser(req);
+      return res.status(response.status).json({
+        message: response.message,
+        user: response.user || null,
+      });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
     }
-}   
-
-const deleteUserController = async (req, res) => {
+  };
+  
+  const updateUserController = async (req, res) => {
     try {
-        const response = await deleteUser(req, res);
-        res.status(200).json(response);
+      const response = await updateUser(req);
+      return res.status(response.status).json({
+        message: response.message,
+        user: response.user || null,
+      });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
     }
-}
-
-const createUserController = async (req, res) => {
+  };
+  
+  const deleteUserController = async (req, res) => {
     try {
-        const response = await createUser(req, res);
-        res.status(200).json(response);
+      const response = await deleteUser(req);
+      return res.status(response.status).json({
+        message: response.message,
+      });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
     }
-}
-
-const requestUserDeletionController = async (req, res) => {
+  };
+  
+  const requestUserDeletionController = async (req, res) => {
     try {
-        const response = await requestUserDeletion(req, res);
-        res.status(200).json(response);
+      const response = await requestUserDeletion(req);
+      return res.status(response.status).json({
+        message: response.message,
+        deletionRequest: response.deletionRequest || null,
+      });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
     }
-}
-
-const getDeletionRequestsController = async (req, res) => {
+  };
+  
+  const getDeletionRequestsController = async (req, res) => {
     try {
-        const response = await getDeletionRequests(req, res);
-        res.status(200).json(response);
+      const response = await getDeletionRequests();
+      return res.status(response.status).json({
+        message: response.message,
+        deletionRequests: response.deletionRequests || [],
+      });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      return res.status(500).json({ message: error.message });
     }
-}
-
-// Controller functions
-module.exports = {
+  };
+  
+  const dashboardController = async (req, res) => {
+    try {
+      const response = await dashboard();
+      return res.status(response.status).json({
+        message: response.message,
+        data: response.data || {},
+      });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  };
+  
+  // Exporting controller functions
+  module.exports = {
     getMeController,
-  getAllUsersController,
-  getUserController,
-  createUserController,
-  updateUserController,
-  deleteUserController,
-  requestUserDeletionController,
-  getDeletionRequestsController,
-};
+    getAllUsersController,
+    getUserController,
+    createUserController,
+    updateUserController,
+    deleteUserController,
+    requestUserDeletionController,
+    getDeletionRequestsController,
+    dashboardController,
+  };
+  
