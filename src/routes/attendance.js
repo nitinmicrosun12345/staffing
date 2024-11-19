@@ -13,17 +13,17 @@ const {
 //   res.send("Attendance route is up. 😊");
 // });
 
-attendanceRouter.get("/", myAttendanceController);
+attendanceRouter.post("/", myAttendanceController);
 
 attendanceRouter.post("/add", addAttendanceController);
 
-attendanceRouter.get(
+attendanceRouter.post(
   "/all",
   permit(["manageAttendance"]),
   viewAllAttendanceController
 );
 
-attendanceRouter.get(
+attendanceRouter.post(
   "/:userId",
   permit(["manageAttendance"]),
   userAttendanceController
