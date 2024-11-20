@@ -157,7 +157,7 @@ const viewAllAttendance = async (req) => {
     }
 
     // Normalize input date to start of the day
-    const inputDate = new Date(date).toDateString();
+    const inputDate = new Date(date);
 
     // Fetch all users
     const users = await User.find({}, "firstName lastName role department empId");
