@@ -251,7 +251,7 @@ const myAttendance = async (req) => {
 
     // Filter by date if provided
     if (date) {
-      const inputDate = new Date(date).toDateString();
+      const inputDate = new Date(date);
       filteredAttendance = filteredAttendance.filter(
         (d) => new Date(d.date).toDateString() === inputDate
       );
@@ -287,7 +287,7 @@ const userAttendance = async (req,res) => {
     let filteredAttendance = attendanceRecord.dates;
 
     if (date) {
-      const inputDate = new Date(date).toDateString();
+      const inputDate = new Date(date);
       filteredAttendance = filteredAttendance.filter(
         (d) => new Date(d.date).toDateString() === inputDate
       );
