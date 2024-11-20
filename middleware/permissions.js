@@ -4,7 +4,7 @@ const roles = {
     // employee: ['viewSelfAttendance', 'viewSelfLeaves', 'viewSelfProfile', 'updateSelfProfile','deletionRequest'],
     // labour:['viewSelfAttendance', 'viewSelfLeaves', 'viewSelfProfile', 'updateSelfProfile']
     admin: ['manageManagers', 'manageEmployees', 'manageLabours','manageAttendance','viewDashboard'],
-    manager: ['manageEmployees', 'manageLabours','viewDashboard'],
+    manager: ['manageEmployees', 'manageLabours','viewDashboard','manageAttendance'],
     employee: ['manageLabours'],
     labour: []
   };

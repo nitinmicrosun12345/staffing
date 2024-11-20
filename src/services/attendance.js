@@ -160,7 +160,7 @@ const viewAllAttendance = async (req) => {
     const inputDate = new Date(date).toDateString();
 
     // Fetch all users
-    const users = await User.find({}, "firstName lastName role department");
+    const users = await User.find({}, "firstName lastName role department empId");
 
     // Fetch attendance records for the specific date
     const attendanceRecords = await Attendance.find({
@@ -198,6 +198,7 @@ const viewAllAttendance = async (req) => {
           role: user.role,
           department: user.department,
           dates: attendance.dates,
+          empId: user.empId
         };
       } else {
         return {
@@ -206,6 +207,7 @@ const viewAllAttendance = async (req) => {
           lastName: user.lastName,
           role: user.role,
           department: user.department,
+          empId: user.empId,
           dates: [
             {
               date: new Date(inputDate),

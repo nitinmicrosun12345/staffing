@@ -25,6 +25,29 @@ const userSchema = new mongoose.Schema({
     country: { type: String },
   },
   authKey: { type: String, default: "" },
+  empId: { type: String, unique: true }, // Unique employee ID
+});
+
+// Pre-save middleware to generate `empId`
+userSchema.pre("save", async function (next) {
+  if (!this.isNew) return next();
+
+  try {
+    const latestUser = await mongoose.model("User").findOne().sort({ _id: -1 });
+
+    if (latestUser && latestUser.userId) {
+      // Extract numeric part from the latest userId and increment it
+      const lastIdNumber = parseInt(latestUser.userId.replace(/\D/g, ""), 10);
+      this.empId = `EMP${(lastIdNumber + 1).toString().padStart(5, "0")}`;
+    } else {
+      // If no users exist, start from EMP00001
+      this.empId = "EMP00001";
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = mongoose.model("User", userSchema);
