@@ -24,7 +24,11 @@ userRouter.post("/logout", logoutController);
 
 userRouter.put("/", updateSelfController);
 
-userRouter.get("/", permit(["manageLabours"]), getAllUsersController);
+userRouter.get(
+  "/",
+  permit(["manageLabours", "manageEmployees"]),
+  getAllUsersController
+);
 
 userRouter.get(
   "/:userId",
@@ -64,7 +68,6 @@ userRouter.post(
   getDeletionRequestsController
 );
 
-userRouter.post('/dashboard', permit(["viewDashboard"]), dashboardController);
-
+userRouter.post("/dashboard", permit(["viewDashboard"]), dashboardController);
 
 module.exports = userRouter;
