@@ -40,6 +40,11 @@ const logout = async (req, res) => {
     const { date, checkOutTime } = req.body;
 
     const parsedDate = new Date(date);
+    console.log(parsedDate,'parsedDate',typeof parsedDate);
+    console.log(date,'date',typeof date);
+    
+    
+    
     if (isNaN(parsedDate)) {
       return {
         status: 400,
@@ -48,7 +53,7 @@ const logout = async (req, res) => {
     }
 
     const attendance = await Attendance.findOneAndUpdate(
-      { userId: user._id, "dates.date": parsedDate },
+      { userId: user._id, "dates.date": date },
       { $set: { "dates.$.checkOutTime": checkOutTime } },
       { new: true }
     );
