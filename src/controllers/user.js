@@ -9,6 +9,8 @@ const {
     requestUserDeletion,
     getDeletionRequests,
     dashboard,
+    deleteUserDirect,
+    updateSelf
   } = require("../services/user");
   
   // Controller functions
@@ -130,6 +132,29 @@ const {
       return res.status(500).json({ message: error.message });
     }
   };
+
+  const deleteUserDirectController = async (req, res) => {
+    try {
+      const response = await deleteUserDirect(req);
+      return res.status(response.status).json({
+        message: response.message,
+      });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  const updateSelfController = async (req, res) => {
+    try {
+      const response = await updateSelf(req,res);
+      return res.status(response.status).json({
+        message: response.message,
+        user: response.user || null,
+      });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
   
   // Exporting controller functions
   module.exports = {
@@ -143,5 +168,7 @@ const {
     requestUserDeletionController,
     getDeletionRequestsController,
     dashboardController,
+    deleteUserDirectController,
+    updateSelfController
   };
   

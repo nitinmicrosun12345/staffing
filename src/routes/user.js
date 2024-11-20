@@ -12,15 +12,17 @@ const {
   updateUserController,
   deleteUserController,
   requestUserDeletionController,
+  updateSelfController,
   getDeletionRequestsController,
-  dashboardController
+  deleteUserDirectController,
+  dashboardController,
 } = require("../controllers/user");
 
-const auth = require("../../middleware/auth");
+userRouter.get("/me", getMeController);
 
-userRouter.get("/me", auth, getMeController);
+userRouter.post("/logout", logoutController);
 
-userRouter.post("/logout", auth, logoutController);
+userRouter.put("/", updateSelfController);
 
 userRouter.get("/", permit(["manageLabours"]), getAllUsersController);
 
@@ -48,6 +50,12 @@ userRouter.delete(
   "/:requestId",
   permit(["manageManagers", "manageEmployees", "manageLabours"]),
   deleteUserController
+);
+
+userRouter.delete(
+  "/delete/:userId",
+  permit(["manageManagers", "manageEmployees", "manageLabours"]),
+  deleteUserDirectController
 );
 
 userRouter.post(

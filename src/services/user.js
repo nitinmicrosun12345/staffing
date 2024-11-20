@@ -219,7 +219,7 @@ const updateUser = async (req) => {
     if (!user) {
       return {
         status: 404,
-        message: "User not found",
+        message: "User to be updated not found",
       };
     }
 
@@ -235,7 +235,7 @@ const updateUser = async (req) => {
     };
   } catch (error) {
     if (error.name === "CastError" && error.kind === "ObjectId") {
-      return { status: 404, message: "User not found" };
+      return { status: 404, message: "UserId not found" };
     }
     return {
       status: 500,
@@ -265,7 +265,7 @@ const deleteUser = async (req) => {
     if (!user) {
       return {
         status: 404,
-        message: "User not found",
+        message: "User to be requested not found",
       };
     }
     await User.findByIdAndDelete(userId);
@@ -275,7 +275,7 @@ const deleteUser = async (req) => {
     };
   } catch (error) {
     if (error.name === "CastError" && error.kind === "ObjectId") {
-      return { status: 404, message: "User not found" };
+      return { status: 404, message: "Request not found" };
     }
     return {
       status: 500,
@@ -297,7 +297,7 @@ const requestUserDeletion = async (req) => {
     if (!user) {
       return {
         status: 404,
-        message: "User not found",
+        message: "User requested to be deleted not found",
       };
     }
     const existingRequest = await DeletionRequest.findOne({ user: userId });
@@ -384,6 +384,79 @@ const dashboard = async (req, res) => {
   }
 };
 
+const deleteUserDirect = async (req) => {
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      return {
+        status: 400,
+        message: "User ID is required",
+      };
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return {
+        status: 404,
+        message: "User to be deleted not found",
+      };
+    }
+    await User.findByIdAndDelete(userId);
+    return {
+      status: 200,
+      message: "User deleted successfully",
+    };
+  } catch (error) {
+    if (error.name === "CastError" && error.kind === "ObjectId") {
+      return { status: 404, message: "User to be deleted not found" };
+    }
+    return {
+      status: 500,
+      message: error.message,
+    };
+  }
+};
+
+
+const updateSelf = async (req) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return {
+        status: 404,
+        message: "User not found",
+      };
+    }
+
+    const updates = req.body;
+    console.log(updates);
+
+    // Update the user in the database
+    const updatedUser = await User.findByIdAndUpdate(user._id, updates, {
+      new: true, // Return the updated document
+    });
+
+    // Corrected the condition
+    if (!updatedUser) {
+      return {
+        status: 500,
+        message: "User can't be updated",
+      };
+    }
+
+    return {
+      status: 200,
+      message: "User updated successfully",
+      user: updatedUser,
+    };
+  } catch (error) {
+    return {
+      status: 500,
+      message: error.message,
+    };
+  }
+};
+
+
 module.exports = {
   getMe,
   logout,
@@ -395,4 +468,6 @@ module.exports = {
   requestUserDeletion,
   getDeletionRequests,
   dashboard,
+  deleteUserDirect,
+  updateSelf
 };

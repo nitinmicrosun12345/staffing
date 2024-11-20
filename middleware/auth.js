@@ -19,7 +19,7 @@ async function auth(req, res, next) {
     const user = await User.findById(decode.id).select(
       "-password -authKey -address"
     );
-    if (!user) return res.status(403).json({ msg: "User not found" });
+    if (!user) return res.status(403).json({ msg: "User not found auth" });
     req.user = user;
     next();
   } catch (error) {
