@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
+  empId: { type: String, unique: true }, // Unique employee ID
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -25,28 +26,26 @@ const userSchema = new mongoose.Schema({
     country: { type: String },
   },
   authKey: { type: String, default: "" },
-  empId: { type: String, unique: true }, // Unique employee ID
 });
 
 // Pre-save middleware to generate `empId`
 userSchema.pre("save", async function (next) {
-  if (!this.isNew) return next();
+  if (!this.isNew) return next(); // Only generate empId for new documents
 
   try {
-    const latestUser = await mongoose.model("User").findOne().sort({ _id: -1 });
+    const latestUser = await mongoose.model("User").findOne().sort({ _id: -1 }); // Get the latest user
 
-    if (latestUser && latestUser.userId) {
-      // Extract numeric part from the latest userId and increment it
-      const lastIdNumber = parseInt(latestUser.userId.replace(/\D/g, ""), 10);
+    if (latestUser && latestUser.empId) {
+      // Extract numeric part from the latest empId and increment it
+      const lastIdNumber = parseInt(latestUser.empId.replace(/\D/g, ""), 10);
       this.empId = `EMP${(lastIdNumber + 1).toString().padStart(5, "0")}`;
     } else {
       // If no users exist, start from EMP00001
       this.empId = "EMP00001";
     }
-
     next();
   } catch (error) {
-    next(error);
+    next(error); // Pass error to the next middleware
   }
 });
 
