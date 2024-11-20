@@ -56,7 +56,7 @@ const logout = async (req, res) => {
     if (!attendance) {
       return {
         status: 404,
-        message: "Attendance record for the specified date not found",
+        message: `Attendance record for ${parsedDate} date not found`,
       };
     }
 
