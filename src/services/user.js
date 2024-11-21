@@ -40,13 +40,6 @@ const logout = async (req, res) => {
     const { date, checkOutTime } = req.body;
 
     const parsedDate = new Date(date);
-    parsedDate.setHours(parsedDate.getHours() + 5); 
-    parsedDate.setMinutes(parsedDate.getMinutes() + 30);
-    console.log(parsedDate,'parsedDate',typeof parsedDate);
-    // console.log(date,'date',typeof date);
-    
-    
-    
     if (isNaN(parsedDate)) {
       return {
         status: 400,
@@ -59,6 +52,9 @@ const logout = async (req, res) => {
       { $set: { "dates.$.checkOutTime": checkOutTime } },
       { new: true }
     );
+    // console.log(`Attendance record for ${parsedDate} and ${date} `);
+    
+
 
     if (!attendance) {
       return {
