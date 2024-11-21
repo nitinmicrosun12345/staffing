@@ -40,8 +40,10 @@ const logout = async (req, res) => {
     const { date, checkOutTime } = req.body;
 
     const parsedDate = new Date(date);
+    parsedDate.setHours(parsedDate.getHours() + 5); 
+    parsedDate.setMinutes(parsedDate.getMinutes() + 30);
     console.log(parsedDate,'parsedDate',typeof parsedDate);
-    console.log(date,'date',typeof date);
+    // console.log(date,'date',typeof date);
     
     
     
@@ -53,7 +55,7 @@ const logout = async (req, res) => {
     }
 
     const attendance = await Attendance.findOneAndUpdate(
-      { userId: user._id, "dates.date": date },
+      { userId: user._id, "dates.date": parsedDate },
       { $set: { "dates.$.checkOutTime": checkOutTime } },
       { new: true }
     );
