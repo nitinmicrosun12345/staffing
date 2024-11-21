@@ -119,7 +119,7 @@ const addAttendance = async (req) => {
 //       };
 //     }
 
-//     // Filter the `dates` array to include only matching records
+//     // Filter the dates array to include only matching records
 //     const filteredAttendances = attendances.map((attendance) => {
 //       const filteredDates = attendance.dates.filter((d) => {
 //         const recordDate = new Date(d.date).toDateString();
@@ -130,7 +130,7 @@ const addAttendance = async (req) => {
 
 //       return {
 //         ...attendance._doc, // Spread the document properties
-//         dates: filteredDates, // Replace `dates` with the filtered array
+//         dates: filteredDates, // Replace dates with the filtered array
 //       };
 //     });
 
@@ -157,7 +157,7 @@ const viewAllAttendance = async (req) => {
     }
 
     // Normalize input date to start of the day
-    const inputDate = new Date(date);
+    const inputDate = new Date(date).toDateString();
 
     // Fetch all users
     const users = await User.find({}, "firstName lastName role department empId");
@@ -251,7 +251,7 @@ const myAttendance = async (req) => {
 
     // Filter by date if provided
     if (date) {
-      const inputDate = new Date(date);
+      const inputDate = new Date(date).toDateString();
       filteredAttendance = filteredAttendance.filter(
         (d) => new Date(d.date).toDateString() === inputDate
       );
@@ -287,7 +287,7 @@ const userAttendance = async (req,res) => {
     let filteredAttendance = attendanceRecord.dates;
 
     if (date) {
-      const inputDate = new Date(date);
+      const inputDate = new Date(date).toDateString();
       filteredAttendance = filteredAttendance.filter(
         (d) => new Date(d.date).toDateString() === inputDate
       );
