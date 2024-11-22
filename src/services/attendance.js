@@ -5,7 +5,7 @@ const addAttendance = async (req) => {
   try {
     let { date, checkInTime, latitude, longitude } = req.body;
 
-    // Convert date to IST
+    // Convert date to IST    
     const originalDate = new Date(date);
     const istOffset = 5 * 60 + 30; // IST is UTC +5:30
     const utcDate = new Date(
@@ -44,7 +44,7 @@ const addAttendance = async (req) => {
 
       return {
         status: 201,
-        message: "Attendance marked successfully",
+        message: `Attendance marked successfully ${istDate}`,
         attendance: updatedAttendance,
       };
     }
