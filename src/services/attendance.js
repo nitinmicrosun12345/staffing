@@ -28,8 +28,7 @@ const addAttendance = async (req) => {
       if (dateExists) {
         return { status: 400, message: "Attendance already marked for today" };
       }
-
-      // Add new attendance entry to the existing document
+      
       attendanceRecord.dates.push({
         date: date,
         status: "present",
