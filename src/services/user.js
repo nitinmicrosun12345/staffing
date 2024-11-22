@@ -48,7 +48,7 @@ const logout = async (req, res) => {
     }
 
     const attendance = await Attendance.findOneAndUpdate(
-      { userId: user._id, "dates.date": parsedDate },
+      { userId: user._id, "dates.date": date },
       { $set: { "dates.$.checkOutTime": checkOutTime } },
       { new: true }
     );
