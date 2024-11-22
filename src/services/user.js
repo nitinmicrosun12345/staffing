@@ -459,6 +459,59 @@ const updateSelf = async (req) => {
   }
 };
 
+const monthlySalary = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { month, year, salaryPerDay } = req.body;
+    if (!userId) {
+      return {
+        status: 400,
+        message: "User ID is required",
+      };
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return {
+        status: 404,
+        message: "User not found",
+      };
+    }
+    const attendance = await Attendance.findOne({ userId: userId });
+    if (!attendance) {
+      return {
+        status: 404,
+        message: "Attendance not found",
+      };
+    }
+
+    let totalWorkingDays = 0;
+    const userAttendance = attendance.dates;
+    userAttendance.forEach((day) => {
+      const date = new Date(day.date);
+      if (date.getMonth()+1 === month && date.getFullYear() === year) {
+        totalWorkingDays++;
+      }
+    });
+
+    const totalSalary = totalWorkingDays * salaryPerDay;
+
+    return {
+      status: 200,
+      message: "Monthly salary calculated successfully",
+      data: {
+        totalWorkingDays,
+        totalSalary,
+      },
+    };
+    
+  } catch (error) {
+    return {
+      status: 500,
+      message: error.message,
+    };
+  }
+};
+
 
 module.exports = {
   getMe,
@@ -472,5 +525,6 @@ module.exports = {
   getDeletionRequests,
   dashboard,
   deleteUserDirect,
-  updateSelf
+  updateSelf,
+  monthlySalary,
 };

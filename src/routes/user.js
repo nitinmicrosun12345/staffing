@@ -16,6 +16,7 @@ const {
   getDeletionRequestsController,
   deleteUserDirectController,
   dashboardController,
+  monthlySalaryController,
 } = require("../controllers/user");
 
 userRouter.get("/me", getMeController);
@@ -69,5 +70,11 @@ userRouter.post(
 );
 
 userRouter.post("/dashboard", permit(["viewDashboard"]), dashboardController);
+
+userRouter.post(
+  "/salary/:userId",
+  permit(["manageSalaries"]),
+  monthlySalaryController
+);
 
 module.exports = userRouter;
