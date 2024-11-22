@@ -6,12 +6,13 @@ const addAttendance = async (req) => {
     let { date, checkInTime, latitude, longitude } = req.body;
 
     // Convert date to IST    
-    const originalDate = new Date(date);
-    const istOffset = 5 * 60 + 30; // IST is UTC +5:30
-    const utcDate = new Date(
-      originalDate.getTime() + originalDate.getTimezoneOffset() * 60000
-    );
-    const istDate = new Date(utcDate.getTime() + istOffset * 60000);
+    date = new Date(date);
+    // const istOffset = 5 * 60 + 30; // IST is UTC +5:30
+    // const utcDate = new Date(
+    //   originalDate.getTime() + originalDate.getTimezoneOffset() * 60000
+    // );
+    // const istDate = new Date(utcDate.getTime() + istOffset * 60000);
+    
 
     const userId = req.user._id;
 
@@ -21,7 +22,7 @@ const addAttendance = async (req) => {
     if (attendanceRecord) {
       // Check if attendance for the same date already exists
       const dateExists = attendanceRecord.dates.some(
-        (d) => new Date(d.date).toDateString() === istDate.toDateString()
+        (d) => new Date(d.date).toDateString() === date.toDateString()
       );
 
       if (dateExists) {
@@ -30,7 +31,7 @@ const addAttendance = async (req) => {
 
       // Add new attendance entry to the existing document
       attendanceRecord.dates.push({
-        date: istDate,
+        date: date,
         status: "present",
         checkInTime,
         latitude,
@@ -44,7 +45,7 @@ const addAttendance = async (req) => {
 
       return {
         status: 201,
-        message: `Attendance marked successfully ${istDate}`,
+        message: `Attendance marked successfully`,
         attendance: updatedAttendance,
       };
     }
@@ -54,7 +55,7 @@ const addAttendance = async (req) => {
       userId,
       dates: [
         {
-          date: istDate,
+          date: date,
           status: "present",
           checkInTime,
           latitude,
@@ -70,10 +71,11 @@ const addAttendance = async (req) => {
 
     return {
       status: 201,
-      message: "Attendance marked successfully",
+      message: `Attendance marked successfully`,
       attendance: savedAttendance,
     };
   } catch (error) {
+    console.error(error);
     return { status: 500, message: error.message };
   }
 };
