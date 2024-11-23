@@ -102,8 +102,8 @@ const getAllUsers = async (req,res) => {
     let query = {};
     if (userRole === "manager") {
       // Managers can view employees and labours
-      // query = { role: { $in: ["employee", "labour"] } };
-      query = { role: { $in: ["employee", "labour"], parentId: req.user._id  } };
+      query = { role: { $in: ["employee", "labour"] } };
+      // query = { role: { $in: ["employee", "labour"], parentId: req.user._id  } };
     } else if (userRole === "employee") {
       // Employees can view only labours
       // query = { role: "labour"};
