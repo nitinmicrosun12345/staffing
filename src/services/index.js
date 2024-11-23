@@ -2,7 +2,7 @@ const bcryptjs = require("bcryptjs");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 
-const signup = async (req, res) => {
+const signup = async (req) => {
   try {
     const {
       email,
@@ -17,8 +17,10 @@ const signup = async (req, res) => {
       status,
       address,
       dateOfBirth,
-      gender
+      gender,
     } = req.body;
+
+    // Validate required fields
     if (
       !email ||
       !password ||
@@ -32,15 +34,17 @@ const signup = async (req, res) => {
       !dateOfBirth ||
       !gender
     ) {
-      return res.status(400).json({ message: "All fields are required" });
+      return { status: 400, message: "All fields are required" };
     }
-    const existingUser = await User.findOne({ email });
-    
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-    const hashedPassword = await bcryptjs.hash(password, 12);
 
+    // Check for existing user
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return { status: 400, message: "User already exists" };
+    }
+
+    // Hash password and create new user
+    const hashedPassword = await bcryptjs.hash(password, 12);
     const user = await User.create({
       email,
       password: hashedPassword,
@@ -54,45 +58,58 @@ const signup = async (req, res) => {
       status,
       address,
       dateOfBirth,
-      gender
+      gender,
     });
-    res.status(201).json({
-      message: "User created successfully",
-      user: user,
-    });
+
+    return { status: 201, message: "User created successfully", user };
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return { status: 500, message: error.message };
   }
 };
 
-const login = async (req, res) => {
+const login = async (req) => {
   try {
     const { email, password } = req.body;
+
+    // Validate required fields
+    if (!email || !password) {
+      return { status: 400, message: "Email and password are required" };
+    }
+
+    // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: "User not found while logging in" });
+      return { status: 404, message: "User not found" };
     }
+
+    // Validate password
     const isPasswordValid = await bcryptjs.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid password" });
+      return { status: 401, message: "Invalid password" };
     }
 
+    // Generate JWT token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    const authKeyInsertion = await User.findByIdAndUpdate(
+    // Update auth key in user record
+    const updatedUser = await User.findByIdAndUpdate(
       user._id,
       { authKey: token },
       { new: true }
     );
-    if (!authKeyInsertion) {
-      return res.status(500).json({ message: "Authentication failed" });
+    if (!updatedUser) {
+      return { status: 500, message: "Authentication failed" };
     }
 
-    res.cookie("token", token, { httpOnly: true });
-
-    res.status(200).json({ message:"User logged in successfully", token });
+    return {
+      status: 200,
+      message: "User logged in successfully",
+      token,
+    };
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return { status: 500, message: error.message };
   }
 };
 

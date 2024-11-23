@@ -3,6 +3,13 @@ const DeletionRequest = require("../models/deletionRequests");
 const Attendance = require("../models/attendance");
 const bcryptjs = require("bcryptjs");
 
+const roleHierarchy = {
+  admin: [],
+  manager: ["admin"],
+  employee: ["admin", "manager"],
+  labour: ["admin", "manager", "employee"],
+};
+
 const getMe = async (req) => {
   try {
     const user = await User.findById(req.user._id).select("-password -authKey");
@@ -52,9 +59,6 @@ const logout = async (req, res) => {
       { $set: { "dates.$.checkOutTime": checkOutTime } },
       { new: true }
     );
-    // console.log(`Attendance record for ${parsedDate} and ${date} `);
-    
-
 
     if (!attendance) {
       return {
@@ -63,7 +67,6 @@ const logout = async (req, res) => {
       };
     }
 
-    // Remove the authKey from the user
     const authKeyRemoval = await User.findByIdAndUpdate(user._id, {
       authKey: "",
     });
@@ -75,14 +78,13 @@ const logout = async (req, res) => {
       };
     }
 
-    // Clear user session and cookie
     req.user = null;
     res.clearCookie("token");
 
     return {
       status: 200,
       message: "Logged out successfully",
-      attendance, // Optionally include the updated attendance record
+      attendance,
     };
   } catch (error) {
     return {
@@ -92,18 +94,38 @@ const logout = async (req, res) => {
   }
 };
 
-const getAllUsers = async () => {
+const getAllUsers = async (req,res) => {
   try {
-    const users = await User.find();
-    if (!users) {
+    const userRole = req.user.role;
+
+    // Admins can fetch all users
+    let query = {};
+    if (userRole === "manager") {
+      // Managers can view employees and labours
+      // query = { role: { $in: ["employee", "labour"] } };
+      query = { role: { $in: ["employee", "labour"], parentId: req.user._id  } };
+    } else if (userRole === "employee") {
+      // Employees can view only labours
+      // query = { role: "labour"};
+      query = { role: "labour", parentId: req.user._id };
+    } else if (userRole !== "admin") {
+      return {
+        status: 401,
+        message: "Unauthorized",
+      };
+    }
+
+    const users = await User.find(query).select("-password -authKey");
+    if (!users || users.length === 0) {
       return {
         status: 404,
         message: "No users found",
       };
     }
+
     return {
       status: 200,
-      message: "All users fetched successfully",
+      message: "Users fetched successfully",
       users: users,
     };
   } catch (error) {
@@ -123,17 +145,54 @@ const getUser = async (req) => {
         message: "User ID is required",
       };
     }
-    const user = await User.findById(userId);
+
+    const userRole = req.user.role;
+    const user = await User.findById(userId).select("-password -authKey");
     if (!user) {
       return {
         status: 404,
         message: "User not found",
       };
     }
+
+    // Admin can access any user
+    if (userRole === "admin") {
+      return {
+        status: 200,
+        message: "User fetched successfully",
+        user: user,
+      };
+    }
+
+    // Managers can access employees and labours
+    if (userRole === "manager" && ["employee", "labour"].includes(user.role)) {
+      return {
+        status: 200,
+        message: "User fetched successfully",
+        user: user,
+      };
+    }
+
+    // Employees can access only labours
+    if (userRole === "employee" && user.role === "labour") {
+      return {
+        status: 200,
+        message: "User fetched successfully",
+        user: user,
+      };
+    }
+
+    // Labours cannot access any user
+    if (userRole === "labour") {
+      return {
+        status: 401,
+        message: "Unauthorized",
+      };
+    }
+
     return {
-      status: 200,
-      message: "User fetched successfully",
-      user: user,
+      status: 401,
+      message: "Unauthorized",
     };
   } catch (error) {
     if (error.name === "CastError" && error.kind === "ObjectId") {
@@ -145,6 +204,7 @@ const getUser = async (req) => {
     };
   }
 };
+
 
 const createUser = async (req) => {
   try {
@@ -163,6 +223,7 @@ const createUser = async (req) => {
       dateOfBirth,
       gender,
     } = req.body;
+
     if (
       !email ||
       !password ||
@@ -178,10 +239,16 @@ const createUser = async (req) => {
     ) {
       return { status: 400, message: "All fields are required" };
     }
+
+    if (!roleHierarchy[role].includes(req.user.role)) {
+      return { status: 400, message: `Unauthorized to create ${role}` };
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return { status: 400, message: "User already exists" };
     }
+
     const hashedPassword = await bcryptjs.hash(password, 12);
 
     const user = await User.create({
@@ -198,7 +265,9 @@ const createUser = async (req) => {
       address,
       dateOfBirth,
       gender,
+      parentId: req.user._id,
     });
+
     return {
       status: 201,
       message: "User created successfully",
@@ -218,11 +287,20 @@ const updateUser = async (req) => {
         message: "User ID is required",
       };
     }
+
+    const userRole = req.user.role;
     const user = await User.findById(userId);
     if (!user) {
       return {
         status: 404,
         message: "User to be updated not found",
+      };
+    }
+
+    if (!roleHierarchy[userRole].includes(user.role)) {
+      return {
+        status: 401,
+        message: "Unauthorized",
       };
     }
 
@@ -247,15 +325,18 @@ const updateUser = async (req) => {
   }
 };
 
-const deleteUser = async (req) => {
+const deleteUserViaRequest = async (req) => {
   try {
     const { requestId } = req.params;
+    const { status } = req.body;
+
     if (!requestId) {
       return {
         status: 400,
         message: "Request ID is required",
       };
     }
+
     const deletionRequest = await DeletionRequest.findById(requestId);
     if (!deletionRequest) {
       return {
@@ -263,18 +344,38 @@ const deleteUser = async (req) => {
         message: "Deletion request not found",
       };
     }
-    const userId = deletionRequest.user;
+
+    const userId = deletionRequest.userId;
     const user = await User.findById(userId);
     if (!user) {
       return {
         status: 404,
-        message: "User to be requested not found",
+        message: "User to be deleted not found",
       };
     }
-    await User.findByIdAndDelete(userId);
+
+    const userRole = req.user.role;
+    if (!roleHierarchy[userRole].includes(user.role)) {
+      return {
+        status: 401,
+        message: "Unauthorized",
+      };
+    }
+
+    if (status === "approved") {
+      await User.findByIdAndDelete(userId);
+      deletionRequest.status = "approved";
+    } else if (status === "rejected") {
+      deletionRequest.status = "rejected";
+    } else {
+      deletionRequest.status = "pending";
+    }
+
+    await deletionRequest.save();
+
     return {
       status: 200,
-      message: "User deleted successfully",
+      message: `Deletion request ${status} successfully`,
     };
   } catch (error) {
     if (error.name === "CastError" && error.kind === "ObjectId") {
@@ -290,12 +391,16 @@ const deleteUser = async (req) => {
 const requestUserDeletion = async (req) => {
   try {
     const { userId } = req.params;
+
+    // Validate User ID
     if (!userId) {
       return {
         status: 400,
         message: "User ID is required",
       };
     }
+
+    // Fetch the user to be deleted
     const user = await User.findById(userId);
     if (!user) {
       return {
@@ -303,26 +408,52 @@ const requestUserDeletion = async (req) => {
         message: "User requested to be deleted not found",
       };
     }
-    const existingRequest = await DeletionRequest.findOne({ user: userId });
+
+    // Fetch the requesting user's role and validate permissions
+    const requestorRole = req.user.role;
+
+    const roleHierarchy = {
+      admin: ["manager", "employee", "labour"],
+      manager: ["employee", "labour"],
+      employee: ["labour"],
+      labour: [],
+    };
+
+    // Check if the requestor has permission to request deletion of the target user
+    if (!roleHierarchy[requestorRole]?.includes(user.role)) {
+      return {
+        status: 401,
+        message: "Unauthorized to request deletion for this user",
+      };
+    }
+
+    // Check for existing deletion requests for the user
+    const existingRequest = await DeletionRequest.findOne({ userId: userId });
     if (existingRequest) {
       return {
         status: 400,
         message: "Deletion request already exists",
       };
     }
+
+    // Create a new deletion request
     const deletionRequest = await DeletionRequest.create({
       userId: userId,
       requestBy: req.user._id,
     });
+
     return {
       status: 201,
       message: "User deletion requested successfully",
-      deletionRequest: deletionRequest,
+      deletionRequest,
     };
   } catch (error) {
+    // Handle specific errors like invalid ObjectId
     if (error.name === "CastError" && error.kind === "ObjectId") {
       return { status: 404, message: "User not found" };
     }
+
+    // General error handling
     return {
       status: 500,
       message: error.message,
@@ -330,19 +461,30 @@ const requestUserDeletion = async (req) => {
   }
 };
 
-const getDeletionRequests = async () => {
+const getDeletionRequests = async (req) => {
   try {
-    const deletionRequests = await DeletionRequest.find();
-    if (!deletionRequests) {
+    const userRole = req.user.role;
+    let query = {};
+
+    if (userRole !== "admin") {
+      query = { requestBy: req.user._id };
+    }
+
+    const deletionRequests = await DeletionRequest.find(query)
+      .populate("userId", "email")
+      .populate("requestBy", "email");
+
+    if (!deletionRequests || deletionRequests.length === 0) {
       return {
         status: 404,
         message: "No deletion requests found",
       };
     }
+
     return {
       status: 200,
-      message: "All deletion requests fetched successfully",
-      deletionRequests: deletionRequests,
+      message: "Deletion requests fetched successfully",
+      deletionRequests,
     };
   } catch (error) {
     return {
@@ -354,21 +496,54 @@ const getDeletionRequests = async () => {
 
 const dashboard = async (req, res) => {
   try {
-    const usersCount = (await User.countDocuments()) - 1;
-    console.log(usersCount);
+    const { role, _id } = req.user; // Get role and user ID from request user
+    let usersCountQuery = {};
+
+    // Adjust `usersCount` query based on role
+    if (role === "admin") {
+      // Exclude admins from the count
+      usersCountQuery = { role: { $ne: "admin" } };
+    } else if (role === "manager") {
+      // Include only employees and labours for managers
+      usersCountQuery = { role: { $in: ["employee", "labour"] } };
+    } else if (role === "employee") {
+      // Include only labours and any "child" users under the employee
+      usersCountQuery = { role: "labour", parentId: _id };
+    }
+
+    const usersCount = await User.countDocuments(usersCountQuery);
 
     const deletionRequestsCount = await DeletionRequest.countDocuments();
-    console.log(deletionRequestsCount);
 
-    const employeesAdded = await User.find({
+    const employeesAddedQuery = {
       dateOfJoining: {
         $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
       },
-    }).countDocuments();
+    };
 
-    const employeesRemoved = await DeletionRequest.find({
-      status: "approved",
-    }).countDocuments();
+    // Adjust `employeesAdded` query for roles
+    if (role === "manager") {
+      employeesAddedQuery.role = { $in: ["employee", "labour"] };
+    } else if (role === "employee") {
+      employeesAddedQuery.role = "labour";
+      employeesAddedQuery.parentId = _id; // Include only users added by the employee
+    }
+
+    const employeesAdded = await User.countDocuments(employeesAddedQuery);
+
+    const employeesRemovedQuery = { status: "approved" };
+
+    // Adjust `employeesRemoved` query for roles
+    if (role === "manager") {
+      employeesRemovedQuery.role = { $in: ["employee", "labour"] };
+      employeesRemovedQuery.requestedBy = _id;
+    } else if (role === "employee") {
+      employeesRemovedQuery.role = "labour";
+      employeesRemovedQuery.requestedBy = _id; // Include only deletions requested by the employee
+    }
+
+    const employeesRemoved = await DeletionRequest.countDocuments(employeesRemovedQuery);
+
     return {
       status: 200,
       message: "Dashboard data fetched successfully",
@@ -380,12 +555,13 @@ const dashboard = async (req, res) => {
       },
     };
   } catch (error) {
-    return {
+    return res.status(500).json({
       status: 500,
       message: error.message,
-    };
+    });
   }
 };
+
 
 const deleteUserDirect = async (req) => {
   try {
@@ -403,6 +579,15 @@ const deleteUserDirect = async (req) => {
         message: "User to be deleted not found",
       };
     }
+
+    const userRole = req.user.role;
+    if (!roleHierarchy[userRole].includes(user.role)) {
+      return {
+        status: 401,
+        message: "Unauthorized",
+      };
+    }
+
     await User.findByIdAndDelete(userId);
     return {
       status: 200,
@@ -419,7 +604,6 @@ const deleteUserDirect = async (req) => {
   }
 };
 
-
 const updateSelf = async (req) => {
   try {
     const user = req.user;
@@ -433,12 +617,10 @@ const updateSelf = async (req) => {
     const updates = req.body;
     console.log(updates);
 
-    // Update the user in the database
     const updatedUser = await User.findByIdAndUpdate(user._id, updates, {
-      new: true, // Return the updated document
+      new: true,
     });
 
-    // Corrected the condition
     if (!updatedUser) {
       return {
         status: 500,
@@ -488,7 +670,7 @@ const monthlySalary = async (req, res) => {
     const userAttendance = attendance.dates;
     userAttendance.forEach((day) => {
       const date = new Date(day.date);
-      if (date.getMonth()+1 === month && date.getFullYear() === year) {
+      if (date.getMonth() + 1 === month && date.getFullYear() === year) {
         totalWorkingDays++;
       }
     });
@@ -503,7 +685,6 @@ const monthlySalary = async (req, res) => {
         totalSalary,
       },
     };
-    
   } catch (error) {
     return {
       status: 500,
@@ -512,7 +693,6 @@ const monthlySalary = async (req, res) => {
   }
 };
 
-
 module.exports = {
   getMe,
   logout,
@@ -520,7 +700,7 @@ module.exports = {
   getUser,
   createUser,
   updateUser,
-  deleteUser,
+  deleteUserViaRequest,
   requestUserDeletion,
   getDeletionRequests,
   dashboard,

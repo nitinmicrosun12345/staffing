@@ -10,13 +10,14 @@ const {
   getUserController,
   createUserController,
   updateUserController,
-  deleteUserController,
+  deleteUserViaRequestController,
   requestUserDeletionController,
   updateSelfController,
   getDeletionRequestsController,
   deleteUserDirectController,
   dashboardController,
   monthlySalaryController,
+
 } = require("../controllers/user");
 
 userRouter.get("/me", getMeController);
@@ -27,13 +28,13 @@ userRouter.put("/", updateSelfController);
 
 userRouter.get(
   "/",
-  permit(["manageLabours", "manageEmployees"]),
+  permit(["manageLabours"]),
   getAllUsersController
 );
 
 userRouter.get(
   "/:userId",
-  permit(["manageLabours", "manageEmployees", "manageManagers"]),
+  permit(["manageLabours"]),
   getUserController
 );
 
@@ -54,7 +55,7 @@ userRouter.post(
 userRouter.delete(
   "/:requestId",
   permit(["manageManagers", "manageEmployees", "manageLabours"]),
-  deleteUserController
+  deleteUserViaRequestController
 );
 
 userRouter.delete(

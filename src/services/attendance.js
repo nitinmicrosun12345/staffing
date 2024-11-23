@@ -5,14 +5,13 @@ const addAttendance = async (req) => {
   try {
     let { date, checkInTime, latitude, longitude } = req.body;
 
-    // Convert date to IST    
+    // Convert date to IST
     date = new Date(date);
     // const istOffset = 5 * 60 + 30; // IST is UTC +5:30
     // const utcDate = new Date(
     //   originalDate.getTime() + originalDate.getTimezoneOffset() * 60000
     // );
     // const istDate = new Date(utcDate.getTime() + istOffset * 60000);
-    
 
     const userId = req.user._id;
 
@@ -28,7 +27,7 @@ const addAttendance = async (req) => {
       if (dateExists) {
         return { status: 400, message: "Attendance already marked for today" };
       }
-      
+
       attendanceRecord.dates.push({
         date: date,
         status: "present",
@@ -161,7 +160,10 @@ const viewAllAttendance = async (req) => {
     const inputDate = new Date(date).toDateString();
 
     // Fetch all users
-    const users = await User.find({}, "firstName lastName role department empId");
+    const users = await User.find(
+      {},
+      "firstName lastName role department empId"
+    );
 
     // Fetch attendance records for the specific date
     const attendanceRecords = await Attendance.find({
@@ -183,7 +185,10 @@ const viewAllAttendance = async (req) => {
           (!status || d.status === status)
       );
       if (filteredDates.length > 0) {
-        acc[record.userId.toString()] = { ...record._doc, dates: filteredDates };
+        acc[record.userId.toString()] = {
+          ...record._doc,
+          dates: filteredDates,
+        };
       }
       return acc;
     }, {});
@@ -199,7 +204,7 @@ const viewAllAttendance = async (req) => {
           role: user.role,
           department: user.department,
           dates: attendance.dates,
-          empId: user.empId
+          empId: user.empId,
         };
       } else {
         return {
@@ -260,7 +265,9 @@ const myAttendance = async (req) => {
 
     // Filter by status if provided
     if (status) {
-      filteredAttendance = filteredAttendance.filter((d) => d.status === status);
+      filteredAttendance = filteredAttendance.filter(
+        (d) => d.status === status
+      );
     }
 
     // Return the filtered attendance records
@@ -274,8 +281,7 @@ const myAttendance = async (req) => {
   }
 };
 
-
-const userAttendance = async (req,res) => {
+const userAttendance = async (req, res) => {
   try {
     const userId = req.params.userId;
     const { date, status } = req.body;
@@ -295,7 +301,9 @@ const userAttendance = async (req,res) => {
     }
 
     if (status) {
-      filteredAttendance = filteredAttendance.filter((d) => d.status === status);
+      filteredAttendance = filteredAttendance.filter(
+        (d) => d.status === status
+      );
     }
 
     return {
@@ -306,7 +314,11 @@ const userAttendance = async (req,res) => {
   } catch (error) {
     return { status: 500, message: error.message };
   }
-}
+};
 
-
-module.exports = { addAttendance, viewAllAttendance, myAttendance, userAttendance };
+module.exports = {
+  addAttendance,
+  viewAllAttendance,
+  myAttendance,
+  userAttendance,
+};

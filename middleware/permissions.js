@@ -5,7 +5,7 @@ const roles = {
     // labour:['viewSelfAttendance', 'viewSelfLeaves', 'viewSelfProfile', 'updateSelfProfile']
     admin: ['manageManagers', 'manageEmployees', 'manageLabours','manageAttendance','viewDashboard','manageSalaries'],
     manager: ['manageEmployees', 'manageLabours','viewDashboard','manageAttendance'],
-    employee: ['manageLabours'],
+    employee: ['manageLabours','viewDashboard'],
     labour: []
   };
   

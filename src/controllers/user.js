@@ -5,7 +5,7 @@ const {
   getUser,
   createUser,
   updateUser,
-  deleteUser,
+  deleteUserViaRequest,
   requestUserDeletion,
   getDeletionRequests,
   dashboard,
@@ -41,7 +41,7 @@ const logoutController = async (req, res) => {
 
 const getAllUsersController = async (req, res) => {
   try {
-    const response = await getAllUsers();
+    const response = await getAllUsers(req,res);
     return res.status(response.status).json({
       message: response.message,
       users: response.users || [],
@@ -87,9 +87,9 @@ const updateUserController = async (req, res) => {
   }
 };
 
-const deleteUserController = async (req, res) => {
+const deleteUserViaRequestController = async (req, res) => {
   try {
-    const response = await deleteUser(req);
+    const response = await deleteUserViaRequest(req,res);
     return res.status(response.status).json({
       message: response.message,
     });
@@ -112,7 +112,7 @@ const requestUserDeletionController = async (req, res) => {
 
 const getDeletionRequestsController = async (req, res) => {
   try {
-    const response = await getDeletionRequests();
+    const response = await getDeletionRequests(req,res);
     return res.status(response.status).json({
       message: response.message,
       deletionRequests: response.deletionRequests || [],
@@ -176,7 +176,7 @@ module.exports = {
   getUserController,
   createUserController,
   updateUserController,
-  deleteUserController,
+  deleteUserViaRequestController,
   requestUserDeletionController,
   getDeletionRequestsController,
   dashboardController,
