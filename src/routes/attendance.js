@@ -19,7 +19,7 @@ attendanceRouter.post("/add", addAttendanceController);
 
 attendanceRouter.post(
   "/all",
-  permit(["manageAttendance"]),
+  permit(["viewAttendance"]),
   viewAllAttendanceController
 );
 

@@ -82,15 +82,21 @@ const addAttendance = async (req) => {
 //   try {
 //     const { date, status } = req.body;
 
-//     let inputDate;
 //     if (!date) {
 //       return { status: 400, message: "Date is required" };
-//     } else {
-//       inputDate = new Date(date).toDateString();
 //     }
 
-//     // Build the query for filtering attendances
-//     const query = {
+//     // Normalize input date to start of the day
+//     const inputDate = new Date(date).toDateString();
+
+//     // Fetch all users
+//     const users = await User.find(
+//       {},
+//       "firstName lastName role department empId"
+//     );
+
+//     // Fetch attendance records for the specific date
+//     const attendanceRecords = await Attendance.find({
 //       dates: {
 //         $elemMatch: {
 //           date: {
@@ -99,45 +105,63 @@ const addAttendance = async (req) => {
 //           },
 //         },
 //       },
-//     };
-
-//     if (status) {
-//       query["dates.status"] = status; // Add status filter
-//     }
-
-//     // Find attendance records with the filters and populate user details
-//     const attendances = await Attendance.find(query).populate({
-//       path: "userId", // Populate user details
-//       select: "firstName lastName role department", // Fields to include
 //     });
 
-//     if (!attendances || attendances.length === 0) {
-//       return {
-//         status: 404,
-//         message: "No attendance records found for the given criteria",
-//         attendances: null,
-//       };
-//     }
+//     // Map attendance records by userId for quick lookup
+//     const attendanceMap = attendanceRecords.reduce((acc, record) => {
+//       const filteredDates = record.dates.filter(
+//         (d) =>
+//           new Date(d.date).toDateString() === inputDate &&
+//           (!status || d.status === status)
+//       );
+//       if (filteredDates.length > 0) {
+//         acc[record.userId.toString()] = {
+//           ...record._doc,
+//           dates: filteredDates,
+//         };
+//       }
+//       return acc;
+//     }, {});
 
-//     // Filter the dates array to include only matching records
-//     const filteredAttendances = attendances.map((attendance) => {
-//       const filteredDates = attendance.dates.filter((d) => {
-//         const recordDate = new Date(d.date).toDateString();
-//         const matchesDate = recordDate === inputDate;
-//         const matchesStatus = status ? d.status === status : true;
-//         return matchesDate && matchesStatus;
-//       });
-
-//       return {
-//         ...attendance._doc, // Spread the document properties
-//         dates: filteredDates, // Replace dates with the filtered array
-//       };
+//     // Prepare the final list combining attendance and absent users
+//     const finalAttendance = users.map((user) => {
+//       const attendance = attendanceMap[user._id.toString()];
+//       if (attendance) {
+//         return {
+//           userId: user._id,
+//           firstName: user.firstName,
+//           lastName: user.lastName,
+//           role: user.role,
+//           department: user.department,
+//           dates: attendance.dates,
+//           empId: user.empId,
+//         };
+//       } else {
+//         return {
+//           userId: user._id,
+//           firstName: user.firstName,
+//           lastName: user.lastName,
+//           role: user.role,
+//           department: user.department,
+//           empId: user.empId,
+//           dates: [
+//             {
+//               date: new Date(inputDate),
+//               status: "absent",
+//               checkInTime: null,
+//               checkOutTime: null,
+//               latitude: null,
+//               longitude: null,
+//             },
+//           ],
+//         };
+//       }
 //     });
 
 //     return {
 //       status: 200,
 //       message: "Attendance fetched successfully",
-//       attendances: filteredAttendances,
+//       attendances: finalAttendance,
 //     };
 //   } catch (error) {
 //     return {
@@ -150,38 +174,48 @@ const addAttendance = async (req) => {
 
 const viewAllAttendance = async (req) => {
   try {
+    const userId = req.user._id;
+    const userRole = req.user.role;
     const { date, status } = req.body;
 
-    if (!date) {
-      return { status: 400, message: "Date is required" };
+    if (!userRole) {
+      return { status: 404, message: "User not found" };
     }
 
-    // Normalize input date to start of the day
-    const inputDate = new Date(date).toDateString();
+    let usersQuery = {};
 
-    // Fetch all users
-    const users = await User.find(
-      {},
-      "firstName lastName role department empId"
-    );
+    if (userRole === "admin") {
+      usersQuery = { role: { $ne: "admin" } };
+    } else if (userRole === "manager") {
+      usersQuery = { role: { $in: ["employee", "labour"] } };
+    } else if (userRole === "employee") {
+      usersQuery = { parentId: userId };
+    } else {
+      return { status: 403, message: "Access denied" };
+    }
 
-    // Fetch attendance records for the specific date
+    const users = await User.find(usersQuery, "firstName lastName role department empId");
+
+    const inputDate = date ? new Date(date).toDateString() : null;
+
     const attendanceRecords = await Attendance.find({
-      dates: {
-        $elemMatch: {
-          date: {
-            $gte: new Date(inputDate),
-            $lt: new Date(new Date(inputDate).getTime() + 24 * 60 * 60 * 1000), // Next day's 12:00 AM
+      userId: { $in: users.map((user) => user._id) },
+      ...(inputDate && {
+        dates: {
+          $elemMatch: {
+            date: {
+              $gte: new Date(inputDate),
+              $lt: new Date(new Date(inputDate).getTime() + 24 * 60 * 60 * 1000),
+            },
           },
         },
-      },
+      }),
     });
 
-    // Map attendance records by userId for quick lookup
     const attendanceMap = attendanceRecords.reduce((acc, record) => {
       const filteredDates = record.dates.filter(
         (d) =>
-          new Date(d.date).toDateString() === inputDate &&
+          (!inputDate || new Date(d.date).toDateString() === inputDate) &&
           (!status || d.status === status)
       );
       if (filteredDates.length > 0) {
@@ -193,7 +227,6 @@ const viewAllAttendance = async (req) => {
       return acc;
     }, {});
 
-    // Prepare the final list combining attendance and absent users
     const finalAttendance = users.map((user) => {
       const attendance = attendanceMap[user._id.toString()];
       if (attendance) {
@@ -234,11 +267,7 @@ const viewAllAttendance = async (req) => {
       attendances: finalAttendance,
     };
   } catch (error) {
-    return {
-      status: 500,
-      message: error.message,
-      attendances: null,
-    };
+    return { status: 500, message: error.message };
   }
 };
 
