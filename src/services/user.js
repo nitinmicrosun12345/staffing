@@ -94,20 +94,20 @@ const logout = async (req, res) => {
   }
 };
 
-const getAllUsers = async (req,res) => {
-  try {
-    const userRole = req.user.role;
+const mongoose = require("mongoose");
 
-    // Admins can fetch all users
+const getAllUsers = async (req) => {
+  try {
+    const { role: userRole, _id: userId } = req.user; // Extract role and ID from the request user
+
     let query = {};
+
     if (userRole === "manager") {
       // Managers can view employees and labours
       query = { role: { $in: ["employee", "labour"] } };
-      // query = { role: { $in: ["employee", "labour"], parentId: req.user._id  } };
     } else if (userRole === "employee") {
-      // Employees can view only labours
-      // query = { role: "labour"};
-      query = { role: "labour", parentId: req.user._id };
+      // Employees can view only labours under their supervision
+      query = { role: "labour", parentId: new mongoose.Types.ObjectId(userId) };
     } else if (userRole !== "admin") {
       return {
         status: 401,
@@ -126,7 +126,7 @@ const getAllUsers = async (req,res) => {
     return {
       status: 200,
       message: "Users fetched successfully",
-      users: users,
+      users,
     };
   } catch (error) {
     return {
@@ -135,6 +135,7 @@ const getAllUsers = async (req,res) => {
     };
   }
 };
+
 
 const getUser = async (req) => {
   try {
@@ -297,13 +298,6 @@ const updateUser = async (req) => {
       };
     }
 
-    if (!roleHierarchy[userRole].includes(user.role)) {
-      return {
-        status: 401,
-        message: "Unauthorized",
-      };
-    }
-
     const updates = req.body;
     const updatedUser = await User.findByIdAndUpdate(userId, updates, {
       new: true,
@@ -354,13 +348,6 @@ const deleteUserViaRequest = async (req) => {
       };
     }
 
-    const userRole = req.user.role;
-    if (!roleHierarchy[userRole].includes(user.role)) {
-      return {
-        status: 401,
-        message: "Unauthorized",
-      };
-    }
 
     if (status === "approved") {
       await User.findByIdAndDelete(userId);
@@ -577,14 +564,6 @@ const deleteUserDirect = async (req) => {
       return {
         status: 404,
         message: "User to be deleted not found",
-      };
-    }
-
-    const userRole = req.user.role;
-    if (!roleHierarchy[userRole].includes(user.role)) {
-      return {
-        status: 401,
-        message: "Unauthorized",
       };
     }
 

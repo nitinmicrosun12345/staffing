@@ -52,7 +52,7 @@ userRouter.post(
   requestUserDeletionController
 );
 
-userRouter.delete(
+userRouter.post(
   "/:requestId",
   permit(["manageManagers", "manageEmployees", "manageLabours"]),
   deleteUserViaRequestController
