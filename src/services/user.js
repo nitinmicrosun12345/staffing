@@ -494,8 +494,6 @@ const getDeletionRequests = async (req) => {
 
 const dashboard = async (req, res) => {
   try {
-    console.log('hiih');
-    
     const { role, _id } = req.user; // Get role and user ID from request user
     let usersCountQuery = {};
 
@@ -505,7 +503,12 @@ const dashboard = async (req, res) => {
       usersCountQuery = { role: { $ne: "admin" } };
     } else if (role === "manager") {
       // Include only employees and labours for managers
-      usersCountQuery = { role: { $in: ["employee", "labour"] } };
+      usersCountQuery = {
+        $or: [
+          { role: { $in: ["employee", "labour"] }, parentId: _id },
+          { role: "labour", grandParentId: _id },
+        ],
+      };
     } else if (role === "employee") {
       // Include only labours and any "child" users under the employee
       usersCountQuery = { role: "labour", parentId: _id };
@@ -515,7 +518,7 @@ const dashboard = async (req, res) => {
 
     const deletionRequestsCount = await DeletionRequest.countDocuments();
 
-    const employeesAddedQuery = {
+    let employeesAddedQuery = {
       dateOfJoining: {
         $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
       },
@@ -523,23 +526,31 @@ const dashboard = async (req, res) => {
 
     // Adjust `employeesAdded` query for roles
     if (role === "manager") {
-      employeesAddedQuery.role = { $in: ["employee", "labour"] };
+      employeesAddedQuery = {
+        $or: [
+          { role: { $in: ["employee", "labour"] }, parentId: _id },
+          { role: "labour", grandParentId: _id },
+        ],
+      };
     } else if (role === "employee") {
-      employeesAddedQuery.role = "labour";
-      employeesAddedQuery.parentId = _id; // Include only users added by the employee
+      employeesAddedQuery = { role: "labour", parentId: _id };
     }
 
     const employeesAdded = await User.countDocuments(employeesAddedQuery);
 
-    const employeesRemovedQuery = { status: "approved" };
+    let employeesRemovedQuery = { status: "approved" };
 
     // Adjust `employeesRemoved` query for roles
     if (role === "manager") {
-      employeesRemovedQuery.role = { $in: ["employee", "labour"] };
-      employeesRemovedQuery.requestedBy = _id;
+      employeesRemovedQuery = {
+        $or: [
+          { role: { $in: ["employee", "labour"] }, parentId: _id },
+          { role: "labour", grandParentId: _id },
+        ],
+        requestedBy: _id,
+      };
     } else if (role === "employee") {
-      employeesRemovedQuery.role = "labour";
-      employeesRemovedQuery.requestedBy = _id; // Include only deletions requested by the employee
+      employeesRemovedQuery = { role: "labour", parentId: _id, requestedBy: _id };
     }
 
     const employeesRemoved = await DeletionRequest.countDocuments(employeesRemovedQuery);
