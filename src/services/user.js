@@ -483,6 +483,8 @@ const getDeletionRequests = async (req) => {
 
 const dashboard = async (req, res) => {
   try {
+    console.log('hiih');
+    
     const { role, _id } = req.user; // Get role and user ID from request user
     let usersCountQuery = {};
 

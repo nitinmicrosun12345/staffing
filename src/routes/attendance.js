@@ -23,8 +23,8 @@ attendanceRouter.post(
   viewAllAttendanceController
 );
 
-attendanceRouter.post(
-  "/:userId",
+attendanceRouter.get(
+  "/get/:userId",
   permit(["manageAttendance"]),
   userAttendanceController
 );

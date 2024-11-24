@@ -19,63 +19,76 @@ const {
   monthlySalaryController,
 
 } = require("../controllers/user");
+const auth = require("../../middleware/auth");
 
 userRouter.get("/me", getMeController);
 
 userRouter.post("/logout", logoutController);
 
-userRouter.put("/", updateSelfController);
+userRouter.put("/updateSelf", updateSelfController);
 
 userRouter.get(
-  "/",
+  "/getAll",
+  
   permit(["manageLabours"]),
   getAllUsersController
 );
 
 userRouter.get(
-  "/:userId",
+  "/get/:userId",
+  
   permit(["manageLabours"]),
   getUserController
 );
 
-userRouter.post("/", permit(["manageLabours"]), createUserController);
+userRouter.post("/create", permit(["manageLabours"]), createUserController);
 
 userRouter.put(
-  "/:userId",
+  "/update/:userId",
+  
   permit(["manageLabours", "manageEmployees", "manageManagers"]),
   updateUserController
 );
 
 userRouter.post(
   "/request/:userId",
+  
   permit(["manageLabours"]),
   requestUserDeletionController
 );
 
 userRouter.post(
-  "/:requestId",
+  "/deleteViaRequest/:requestId",
+  
   permit(["manageManagers", "manageEmployees", "manageLabours"]),
   deleteUserViaRequestController
 );
 
 userRouter.delete(
   "/delete/:userId",
+  
   permit(["manageManagers", "manageEmployees", "manageLabours"]),
   deleteUserDirectController
 );
 
-userRouter.post(
+userRouter.get(
   "/requests",
+  
   permit(["manageLabours"]),
   getDeletionRequestsController
 );
 
-userRouter.post("/dashboard", permit(["viewDashboard"]), dashboardController);
+userRouter.get("/dashboard", permit(["viewDashboard"]), dashboardController);
 
 userRouter.post(
   "/salary/:userId",
   permit(["manageSalaries"]),
   monthlySalaryController
 );
+
+userRouter.get("/hi",(req,res)=>{
+  console.log("hi");
+  
+})
 
 module.exports = userRouter;

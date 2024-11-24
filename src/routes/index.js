@@ -12,7 +12,7 @@ router.post("/signup", signupController);
 
 router.post("/login", loginController);
 
-router.use("/user", auth, userRouter);
+router.use("/user",auth, userRouter);
 
 router.use('/attendance',auth, attendanceRouter);
 

@@ -11,14 +11,23 @@ const roles = {
   
   function permit(allowedRoles) {
     return (req, res, next) => {
-      const userRole = req.user.role; 
-      const userPermissions = roles[userRole] || [];
+      console.log("User in Permit Middleware:", req.user);
   
-      if (allowedRoles.some(role => userPermissions.includes(role))) {
+      if (!req.user) {
+        return res.status(401).json({ error: "User is not authenticated" });
+      }
+  
+      const userRole = req.user.role;
+      console.log("User Role:", userRole);
+  
+      const userPermissions = roles[userRole] || [];
+      if (allowedRoles.some((role) => userPermissions.includes(role))) {
         return next();
       }
+  
       return res.status(403).json({ error: `Access denied as ${userRole}` });
     };
   }
+  
   
   module.exports = permit;
