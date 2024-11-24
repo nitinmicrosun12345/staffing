@@ -106,7 +106,7 @@ const getAllUsers = async (req) => {
       // Managers can view employees with parentId and labours with grandParentId
       query = {
         $or: [
-          { role: "employee", parentId: userId },
+          { role: { $in: ["employee", "labour"] }, parentId: userId },
           { role: "labour", grandParentId: userId },
         ],
       };

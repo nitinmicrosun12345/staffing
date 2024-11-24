@@ -189,7 +189,7 @@ const viewAllAttendance = async (req) => {
     } else if (userRole === "manager") {
       usersQuery = {
         $or: [
-          { role: "employee", parentId: userId },
+          { role: { $in: ["employee", "labour"] }, parentId: userId },
           { role: "labour", grandParentId: userId },
         ],
       }
