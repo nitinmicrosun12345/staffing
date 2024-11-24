@@ -103,8 +103,13 @@ const getAllUsers = async (req) => {
     let query = {};
 
     if (userRole === "manager") {
-      // Managers can view employees and labours
-      query = { role: { $in: ["employee", "labour"] } };
+      // Managers can view employees with parentId and labours with grandParentId
+      query = {
+        $or: [
+          { role: "employee", parentId: userId },
+          { role: "labour", grandParentId: userId },
+        ],
+      };
     } else if (userRole === "employee") {
       // Employees can view only labours under their supervision
       query = { role: "labour", parentId: new mongoose.Types.ObjectId(userId) };
@@ -252,7 +257,7 @@ const createUser = async (req) => {
 
     const hashedPassword = await bcryptjs.hash(password, 12);
 
-    const user = await User.create({
+    const newUser = {
       email,
       password: hashedPassword,
       firstName,
@@ -267,7 +272,13 @@ const createUser = async (req) => {
       dateOfBirth,
       gender,
       parentId: req.user._id,
-    });
+    };
+
+    if (req.user.role === "employee") {
+      newUser.grandParentId = req.user.parentId;
+    }
+
+    const user = await User.create(newUser);
 
     return {
       status: 201,

@@ -86,9 +86,4 @@ userRouter.post(
   monthlySalaryController
 );
 
-userRouter.get("/hi",(req,res)=>{
-  console.log("hi");
-  
-})
-
 module.exports = userRouter;

@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema({
   empId: { type: String, unique: true }, // Unique employee ID
   parentId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  grandParentId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
