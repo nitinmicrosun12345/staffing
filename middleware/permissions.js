@@ -3,7 +3,7 @@ const roles = {
     // manager: ['manageDepartments', 'manageAttendance', 'viewSelfProfile','deletionRequest'],
     // employee: ['viewSelfAttendance', 'viewSelfLeaves', 'viewSelfProfile', 'updateSelfProfile','deletionRequest'],
     // labour:['viewSelfAttendance', 'viewSelfLeaves', 'viewSelfProfile', 'updateSelfProfile']
-    admin: ['manageManagers', 'manageEmployees', 'manageLabours','manageAttendance','viewDashboard','manageSalaries'],
+    admin: ['manageManagers', 'manageEmployees', 'manageLabours','manageAttendance','viewDashboard','manageSalaries','viewAttendance'],
     manager: ['manageEmployees', 'manageLabours','viewDashboard','manageAttendance','viewAttendance'],
     employee: ['manageLabours','viewDashboard','viewAttendance'],
     labour: []
