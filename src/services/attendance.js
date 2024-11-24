@@ -187,7 +187,12 @@ const viewAllAttendance = async (req) => {
     if (userRole === "admin") {
       usersQuery = { role: { $ne: "admin" } };
     } else if (userRole === "manager") {
-      usersQuery = { role: { $in: ["employee", "labour"] } };
+      usersQuery = {
+        $or: [
+          { role: "employee", parentId: userId },
+          { role: "labour", grandParentId: userId },
+        ],
+      }
     } else if (userRole === "employee") {
       usersQuery = { parentId: userId };
     } else {
