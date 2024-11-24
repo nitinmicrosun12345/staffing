@@ -1,4 +1,4 @@
-const { signup, login } = require("../services/index");
+const { signup, login, excelFile } = require("../services/index");
 
 const signupController = async (req, res) => {
   try {
@@ -24,4 +24,13 @@ const loginController = async (req, res) => {
   }
 };
 
-module.exports = { signupController, loginController };
+const excelFileController = async (req, res) => {
+  try {
+    const response = await excelFile(req,res);
+    return res.status(response.status).send(response.data);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { signupController, loginController,excelFileController };

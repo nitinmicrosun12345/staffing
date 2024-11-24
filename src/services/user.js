@@ -94,16 +94,22 @@ const logout = async (req, res) => {
   }
 };
 
-const mongoose = require("mongoose");
-
 const getAllUsers = async (req) => {
   try {
-    const { role: userRole, _id: userId } = req.user; // Extract role and ID from the request user
+    const { role: userRole, _id: userId } = req.user;
+    const { month, year } = req.body;
+
+    if (!month || !year) {
+      return {
+        status: 400,
+        message: "Month and Year are required.",
+      };
+    }
 
     let query = {};
 
+    // Build query based on user role
     if (userRole === "manager") {
-      // Managers can view employees with parentId and labours with grandParentId
       query = {
         $or: [
           { role: { $in: ["employee", "labour"] }, parentId: userId },
@@ -111,7 +117,6 @@ const getAllUsers = async (req) => {
         ],
       };
     } else if (userRole === "employee") {
-      // Employees can view only labours under their supervision
       query = { role: "labour", parentId: new mongoose.Types.ObjectId(userId) };
     } else if (userRole !== "admin") {
       return {
@@ -120,18 +125,51 @@ const getAllUsers = async (req) => {
       };
     }
 
+    // Fetch users based on the query
     const users = await User.find(query).select("-password -authKey");
     if (!users || users.length === 0) {
       return {
         status: 404,
-        message: "No users found",
+        message: "No users found.",
       };
     }
 
+    // Calculate working days for each user
+    const userWorkingDays = await Promise.all(
+      users.map(async (user) => {
+        const attendance = await Attendance.findOne({ userId: user._id });
+
+        let totalWorkingDays = 0;
+        if (attendance) {
+          const userAttendance = attendance.dates;
+
+          userAttendance.forEach((day) => {
+            const date = new Date(day.date);
+            if (date.getMonth() + 1 === parseInt(month) && date.getFullYear() === parseInt(year)) {
+              if (day.status === "present") {
+                totalWorkingDays++;
+              }
+            }
+          });
+        }
+
+        return {
+          empId: user.empId,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          department: user.department,
+          status: user.status,
+          totalWorkingDays,
+        };
+      })
+    );
+
     return {
       status: 200,
-      message: "Users fetched successfully",
-      users,
+      message: "Users with working days fetched successfully.",
+      users: userWorkingDays,
     };
   } catch (error) {
     return {
@@ -140,6 +178,7 @@ const getAllUsers = async (req) => {
     };
   }
 };
+
 
 
 const getUser = async (req) => {
@@ -210,7 +249,6 @@ const getUser = async (req) => {
     };
   }
 };
-
 
 const createUser = async (req) => {
   try {
@@ -358,7 +396,6 @@ const deleteUserViaRequest = async (req) => {
         message: "User to be deleted not found",
       };
     }
-
 
     if (status === "approved") {
       await User.findByIdAndDelete(userId);
@@ -550,10 +587,16 @@ const dashboard = async (req, res) => {
         requestedBy: _id,
       };
     } else if (role === "employee") {
-      employeesRemovedQuery = { role: "labour", parentId: _id, requestedBy: _id };
+      employeesRemovedQuery = {
+        role: "labour",
+        parentId: _id,
+        requestedBy: _id,
+      };
     }
 
-    const employeesRemoved = await DeletionRequest.countDocuments(employeesRemovedQuery);
+    const employeesRemoved = await DeletionRequest.countDocuments(
+      employeesRemovedQuery
+    );
 
     return {
       status: 200,
@@ -572,7 +615,6 @@ const dashboard = async (req, res) => {
     });
   }
 };
-
 
 const deleteUserDirect = async (req) => {
   try {

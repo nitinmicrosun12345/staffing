@@ -17,9 +17,7 @@ const {
   deleteUserDirectController,
   dashboardController,
   monthlySalaryController,
-
 } = require("../controllers/user");
-const auth = require("../../middleware/auth");
 
 userRouter.get("/me", getMeController);
 
@@ -29,14 +27,13 @@ userRouter.put("/updateSelf", updateSelfController);
 
 userRouter.get(
   "/getAll",
-  
   permit(["manageLabours"]),
   getAllUsersController
 );
 
 userRouter.get(
   "/get/:userId",
-  
+
   permit(["manageLabours"]),
   getUserController
 );
@@ -45,35 +42,35 @@ userRouter.post("/create", permit(["manageLabours"]), createUserController);
 
 userRouter.put(
   "/update/:userId",
-  
+
   permit(["manageLabours", "manageEmployees", "manageManagers"]),
   updateUserController
 );
 
 userRouter.post(
   "/request/:userId",
-  
+
   permit(["manageLabours"]),
   requestUserDeletionController
 );
 
 userRouter.post(
   "/deleteViaRequest/:requestId",
-  
+
   permit(["manageManagers", "manageEmployees", "manageLabours"]),
   deleteUserViaRequestController
 );
 
 userRouter.delete(
   "/delete/:userId",
-  
+
   permit(["manageManagers", "manageEmployees", "manageLabours"]),
   deleteUserDirectController
 );
 
 userRouter.get(
   "/requests",
-  
+
   permit(["manageLabours"]),
   getDeletionRequestsController
 );
@@ -85,5 +82,6 @@ userRouter.post(
   permit(["manageSalaries"]),
   monthlySalaryController
 );
+
 
 module.exports = userRouter;
