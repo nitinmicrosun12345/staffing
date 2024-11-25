@@ -97,7 +97,7 @@ const logout = async (req, res) => {
 const getAllUsers = async (req) => {
   try {
     const { role: userRole, _id: userId } = req.user;
-    const { month, year } = req.body;
+    const { month, year, salaryPerDay } = req.body;
 
     if (!month || !year) {
       return {
@@ -162,6 +162,7 @@ const getAllUsers = async (req) => {
           department: user.department,
           status: user.status,
           totalWorkingDays,
+          totalSalary: totalWorkingDays * salaryPerDay
         };
       })
     );
