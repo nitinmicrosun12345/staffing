@@ -25,7 +25,7 @@ userRouter.post("/logout", logoutController);
 
 userRouter.put("/updateSelf", updateSelfController);
 
-userRouter.get(
+userRouter.post(
   "/getAll",
   permit(["manageLabours"]),
   getAllUsersController
