@@ -94,6 +94,8 @@ const logout = async (req, res) => {
   }
 };
 
+const mongoose = require("mongoose");
+
 const getAllUsers = async (req) => {
   try {
     const { role: userRole, _id: userId } = req.user;
