@@ -161,6 +161,7 @@ const getAllUsers = async (req) => {
           role: user.role,
           department: user.department,
           status: user.status,
+          dateOfJoining: user.dateOfJoining,
           totalWorkingDays,
           totalSalary: totalWorkingDays * salaryPerDay
         };
