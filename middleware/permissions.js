@@ -3,15 +3,15 @@ const roles = {
     // manager: ['manageDepartments', 'manageAttendance', 'viewSelfProfile','deletionRequest'],
     // employee: ['viewSelfAttendance', 'viewSelfLeaves', 'viewSelfProfile', 'updateSelfProfile','deletionRequest'],
     // labour:['viewSelfAttendance', 'viewSelfLeaves', 'viewSelfProfile', 'updateSelfProfile']
-    admin: ['manageManagers', 'manageEmployees', 'manageLabours','manageAttendance','viewDashboard','manageSalaries','viewAttendance'],
-    manager: ['manageEmployees', 'manageLabours','viewDashboard','manageAttendance','viewAttendance'],
-    employee: ['manageLabours','viewDashboard','viewAttendance'],
+    admin: ['manageManagers', 'manageEmployees', 'manageLabours','manageAttendance','viewDashboard','manageSalaries','viewAttendance','manageLeaves'],
+    manager: ['manageEmployees', 'manageLabours','viewDashboard','manageAttendance','viewAttendance','manageLeaves'],
+    employee: ['manageLabours','viewDashboard','viewAttendance','manageLeaves'],
     labour: []
   };
   
   function permit(allowedRoles) {
     return (req, res, next) => {
-      console.log("User in Permit Middleware:", req.user);
+      // console.log("User in Permit Middleware:", req.user);
   
       if (!req.user) {
         return res.status(401).json({ error: "User is not authenticated" });
