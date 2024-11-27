@@ -12,6 +12,7 @@ const {
   deleteUserDirect,
   updateSelf,
   monthlySalary,
+  picture,
 } = require("../services/user");
 
 // Controller functions
@@ -41,7 +42,7 @@ const logoutController = async (req, res) => {
 
 const getAllUsersController = async (req, res) => {
   try {
-    const response = await getAllUsers(req,res);
+    const response = await getAllUsers(req, res);
     return res.status(response.status).json({
       message: response.message,
       users: response.users || [],
@@ -89,7 +90,7 @@ const updateUserController = async (req, res) => {
 
 const deleteUserViaRequestController = async (req, res) => {
   try {
-    const response = await deleteUserViaRequest(req,res);
+    const response = await deleteUserViaRequest(req, res);
     return res.status(response.status).json({
       message: response.message,
     });
@@ -112,7 +113,7 @@ const requestUserDeletionController = async (req, res) => {
 
 const getDeletionRequestsController = async (req, res) => {
   try {
-    const response = await getDeletionRequests(req,res);
+    const response = await getDeletionRequests(req, res);
     return res.status(response.status).json({
       message: response.message,
       deletionRequests: response.deletionRequests || [],
@@ -159,7 +160,7 @@ const updateSelfController = async (req, res) => {
 
 const monthlySalaryController = async (req, res) => {
   try {
-    const response = await monthlySalary(req,res);
+    const response = await monthlySalary(req, res);
     return res.status(response.status).json({
       message: response.message,
       data: response.data || {},
@@ -168,6 +169,19 @@ const monthlySalaryController = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+const pictureController = async (req, res) => {
+  try {
+    const response = await picture(req, res);
+    return res.status(response.status).json({
+      message: response.message,
+      user: response.user || {},
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 // Exporting controller functions
 module.exports = {
   getMeController,
@@ -183,4 +197,5 @@ module.exports = {
   deleteUserDirectController,
   updateSelfController,
   monthlySalaryController,
+  pictureController,
 };

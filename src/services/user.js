@@ -2,6 +2,7 @@ const User = require("../models/user");
 const DeletionRequest = require("../models/deletionRequests");
 const Attendance = require("../models/attendance");
 const bcryptjs = require("bcryptjs");
+const mongoose = require("mongoose");
 
 const roleHierarchy = {
   admin: [],
@@ -94,8 +95,6 @@ const logout = async (req, res) => {
   }
 };
 
-const mongoose = require("mongoose");
-
 const getAllUsers = async (req) => {
   try {
     const { role: userRole, _id: userId } = req.user;
@@ -147,7 +146,10 @@ const getAllUsers = async (req) => {
 
           userAttendance.forEach((day) => {
             const date = new Date(day.date);
-            if (date.getMonth() + 1 === parseInt(month) && date.getFullYear() === parseInt(year)) {
+            if (
+              date.getMonth() + 1 === parseInt(month) &&
+              date.getFullYear() === parseInt(year)
+            ) {
               if (day.status === "present") {
                 totalWorkingDays++;
               }
@@ -165,7 +167,7 @@ const getAllUsers = async (req) => {
           status: user.status,
           dateOfJoining: user.dateOfJoining,
           totalWorkingDays,
-          totalSalary: totalWorkingDays * salaryPerDay
+          totalSalary: totalWorkingDays * salaryPerDay,
         };
       })
     );
@@ -182,8 +184,6 @@ const getAllUsers = async (req) => {
     };
   }
 };
-
-
 
 const getUser = async (req) => {
   try {
@@ -742,6 +742,52 @@ const monthlySalary = async (req, res) => {
   }
 };
 
+const picture = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return {
+        status: 404,
+        message: "User not found",
+      };
+    }
+
+    const picture = req.file ? req.file.path : null;
+    if (!picture) {
+      return {
+        status: 400,
+        message: "Picture upload failed",
+      };
+    }
+
+    // Update the user's profile with the picture URL
+    const updatedUser = await User.findByIdAndUpdate(
+      user._id,
+      { picture },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return {
+        status: 500,
+        message: "User update failed",
+      };
+    }
+
+    return {
+      status: 200,
+      message: "User updated successfully",
+      user: updatedUser,
+    };
+  } catch (error) {
+    return {
+      status: 500,
+      message: error.message,
+    };
+  }
+};
+
+
 module.exports = {
   getMe,
   logout,
@@ -756,4 +802,5 @@ module.exports = {
   deleteUserDirect,
   updateSelf,
   monthlySalary,
+  picture,
 };

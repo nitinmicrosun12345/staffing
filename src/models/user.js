@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   mobile: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  picture: { type: String },
+  picture: { type: String, default: "https://res.cloudinary.com/dg62qprjy/image/upload/v1732685976/shyajjr7uegvjwrcrfup.jpg" },
   role: {
     type: String,
     enum: ["admin", "manager", "employee", "labour"],
