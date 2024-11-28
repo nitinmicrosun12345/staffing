@@ -2,6 +2,9 @@ const bcryptjs = require("bcryptjs");
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const createExcelBuffer = require("../../utlis/createExcel");
+const {
+  getAllUsers
+} = require("../services/user");
 
 const signup = async (req) => {
   try {
@@ -116,25 +119,32 @@ const login = async (req) => {
 
 const excelFile = async (req, res) => {
   try {
-    const employees = req.body.employees;
+    // Fetch all users with working days
+    const response = await getAllUsers(req); // Removed `res` as it's unnecessary here
+
+    if (response.status !== 200) {
+      return res.status(response.status).json({ message: response.message });
+    }
+
+    const employees = response.users;
+
+    // Generate Excel file buffer
     const { buffer, fileName } = await createExcelBuffer(employees, 'employees_data.xlsx');
 
-    // Set headers to trigger download
+    // Set headers for file download
     res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
-    // Send the file buffer
-    return{
-      status:200,
+    // Send file buffer
+    return {
+      status: 200,
       data: buffer,
-      message:"Excel created successfully"
+    message: "Excel file generated successfully",
     }
   } catch (error) {
-    return{
-      status: 500,
-      message: error.message
-    }
+    return { status: 500, message: error.message };
   }
+
 };
 
 module.exports = { signup, login, excelFile };

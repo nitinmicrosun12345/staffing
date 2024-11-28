@@ -27,6 +27,7 @@ const loginController = async (req, res) => {
 const excelFileController = async (req, res) => {
   try {
     const response = await excelFile(req,res);
+    console.log('response',response);
     return res.status(response.status).send(response.data);
   } catch (error) {
     return res.status(500).json({ message: error.message });

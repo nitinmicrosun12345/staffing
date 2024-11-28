@@ -15,7 +15,7 @@ const {
 
 router.post("/signup", signupController);
 router.post("/login", loginController);
-router.post("/excel", excelFileController);
+router.post("/excel", auth, excelFileController);
 
 router.use("/user", auth, userRouter);
 
