@@ -158,6 +158,7 @@ const getAllUsers = async (req) => {
         }
 
         return {
+          _id: user._id,
           empId: user.empId,
           firstName: user.firstName,
           lastName: user.lastName,
