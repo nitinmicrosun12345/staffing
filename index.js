@@ -5,8 +5,6 @@ const cookieparser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const { connectDB } = require('./db/dbConnection');
 const cors = require('cors');
-const auth = require('./middleware/auth.js');
-const userRouter = require('./src/routes/user.js');
 dotenv.config();
 
 const allowedOrigins = [
